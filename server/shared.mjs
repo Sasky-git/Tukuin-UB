@@ -1,7 +1,41 @@
-import admin from 'firebase-admin';
+
+import { cert, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 import { google } from 'googleapis';
 
 export function services() {
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = (
+    process.env.FIREBASE_PRIVATE_KEY || ''
+  ).replace(/\\n/g, '\n');
+
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error(
+      'Environment variable Firebase server belum lengkap'
+    );
+  }
+
+  const app = getApps().length
+    ? getApps()[0]
+    : initializeApp({
+        credential: cert({
+          projectId,
+          clientEmail,
+          privateKey
+        })
+      });
+
+  return {
+    db: getFirestore(app),
+    auth: getAuth(app),
+    projectId,
+    clientEmail,
+    privateKey
+  };
+}
+ {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
